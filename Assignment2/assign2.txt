@@ -1,0 +1,55 @@
+1)
+	Changing m shadowmapSize from 32 to 2048 results in the texture:
+
+	
+	As you lower the shadow map size you effectively lose the precision that you can
+	represent the texture with.  From what I observed it appears that its highly aliases,
+	and gets really large "pixels" (that it looks like).
+
+2)
+	Changing the min amd ag filter for your cube map to GL_LINEAR from GL_NEAREST:
+
+	As the value is very high (2048) there seems like no difference, even at 512.
+
+	But as we move the value down to low like 64 or 32 it is pixelated like in 1) HOWEVER
+	its almost as if its multi-sampled or anti-aliased, on the edges they are "slightly gradient",
+	it seems that GL_NEAREST just took the pixel color from the corresponding pixel in the texture as a
+	1-to-1 map, with the LINEAR it sampled the pixels around the 1 spot in the texture to get an average
+	which explains why when your at the edge it gets a lighter shade (since it averages bright and dark).
+
+3)
+
+		Changing the bias constant in the fragment shader source of the Depth shader to -0.05, 0.0 and 0.05 with 1) and 2):
+
+	As far as i could tell, there really was not a whole lot of difference between GL_NEAREST and GL_LINEAR outside of what I already found out in 2).
+
+	HOWEVER:  The "bias" with 0.0 and 0.05 I couldn't tell any difference, THE ONLY one where I noticed a difference was with -.05, and since it was negative I'm pretty sure the light was inside the object which caused it to shadow itself, and a "pacman" like appearance on the top is the inside turned out.
+
+	As far as the shadow on the wall is concerned, it pretty much looked the same for all these.
+
+4)
+	The reason for this is that Gouraud shaders offer very little detail when compared with Fragment shaders.
+
+	Since Fragment shaders work per fragment, there is a linear representation of the texture (and the shadow) so it appears nice and smooth.
+
+	With Gouraud shaders they work per vertex, so there is not a linear representation of the texture that will appear, and neither the shadow, so it will not look as good.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

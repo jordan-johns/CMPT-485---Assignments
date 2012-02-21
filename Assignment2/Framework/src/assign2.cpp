@@ -63,7 +63,7 @@ Assignment2::Assignment2()
 	// Start with wireframe rendering turned off
 	m_renderWireframe = false;
 
-	m_shadowmapSize = 512;
+	m_shadowmapSize = 1024;
 	m_enableShadows = false;
 
 	m_lastIdleTime = UI::getTime();

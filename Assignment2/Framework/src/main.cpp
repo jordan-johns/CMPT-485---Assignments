@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 
 	// Create & initialize the program object
 	int choice=2;
-#if 0
+#if 1
 	do
 	{
 		printf("\n"
