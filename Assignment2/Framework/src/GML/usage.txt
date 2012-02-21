@@ -1,0 +1,244 @@
+This is a simple header-based C++ "library" for basic vector-matrix math.
+
+The entire contents of the library resides in the "gml" namespace, so
+to use types/functions from the library you must either include a 
+"using namespace gml;" in your source file, or prefix all references
+to identifiers within the header with "gml::"
+
+============================================
+Types
+============================================
+
+Vectors
+---------
+The vector types are:
+ vec2_t  -- 2-element vector
+ vec3_t  -- 3-element vector
+ vec4_t  -- 4-element vector
+
+ The vector types are declared as unions, which means that their members
+have multiple names. The names are:
+ x, y, z, w
+ r, g, b, a  OR
+ s, t, p, q
+
+ 2-element vectors have the first two names in each list (x, y, r, g, s, t),
+3-element vectors have the first three, and 4-element have them all.
+
+ As an example, if you have:
+gml::vec3_t v;
+
+ Then v.x is the same memory as v.r and v.s. Furthermore, v.w, v.a, and v.q
+are not members of v.
+
+ The [] operator is also overloaded for the vector types; meaning that you
+can access the elements of the vector using array syntax.
+ ex: v[0] is the same as v.x
+
+ Finally, there are a number of constructors for each vector. You can see
+them all in gmlstructs.h
+
+Matrix types
+------------
+
+ There are _a lot_ of different matrix types. They are all named:
+matNxM_t where N and M are the digits 2, 3, or 4
+  ex: mat2x3_t or mat4x4_t
+
+ The N indicates the number of rows in the matrix, and the M indicates
+the number of columns.
+
+ Each matrix is stored as an array of M vecN_t's. This results in a 
+column-major ordering of the elements within the matrix; unlike a regular
+2D array in C (2D arrays in C are stored in row-major order).
+
+ The [] operator is overloaded for the matrix types, and will return 
+a reference to a column vector of the matrix. Thus, if you have (for example):
+ gml::mat3x4_t M;
+
+ Then, M[0] is the vec3_t that is the first column of the matrix. 
+
+ Since the [] operator for the vector types is also overloaded, this means
+that you can access the element in M at row i, column j with:
+ M[j][i]  (note: column-major order, so the column is the first index)
+
+ Only the default constructor is available for matrix types, and it 
+initializes all elements of the matrix to 0.
+
+ The curious can see the definition of the matrix types in gmlstructs.h
+   Warning: The types are defined with some pre-processor magic to reduce
+  typing by the author of the library.
+
+===============================================
+Functions
+===============================================
+
+ All functions are declared inline; if you're not sure what that means,
+then I recommend a quick googling. 
+
+----------------
+Vector functions
+----------------
+
+Note: This is a summary, N may be one of 2, 3, or 4
+
+* Vector scaling:
+  vecN_t scale(float s, vecN_t v) 
+    returns the vector that is obtained by multiplying each element of v by s
+
+* Vector addition
+  vecN_t add(vecN_t a, vecN_t b)
+    return the vector that is obtained by component-wise addition of a to b
+
+* Vector subtraction
+  vecN_t sub(vecN_t a, vecN_t b)
+    return the vector that is obtained by component-wise subtraction of b 
+   from a
+
+* Dot product
+  float dot(vecN_t a, vecN_t b)
+    returns the vector dot product: a . b
+
+* Vector length
+  float length(vecN_t v)
+    returns the length of v
+
+* Vector length squared
+  float length2(vecN_t v)
+    returns dot(v,v) -- also equal to the (length of v)^2
+
+* Vector normalization
+  vecN_t normalize(vecN_t v)
+     returns v / ||v|| -- i.e. vector in the direction of v, with unit length
+
+* Vector cross product
+  vec3_t cross(vec3_t a, vec3_t b)
+    returns the vector that results from a x b
+
+-----------------
+Matrix functions
+-----------------
+
+* Matrix-vector multiplication
+   vecN_t mul(matMxN_t A, vecN_t v)
+     returns the matrix-vector product: Av
+     M may be any of 2, 3, or 4
+     N may be any of 2, 3, or 4
+
+* Matrix scaling
+  matNxM_t scale(float s, matNxM_t M)
+   returns the matrix that results from multiplying each element of M by s
+
+* Matrix-matrix addition
+  matNxM_t add(matNxM_t A, matNxM_t B)
+   returns the matrix that results from component-wise addition of A to B
+
+* Matrix-matrix subtraction
+  matNxM_t sub(matNxM_t A, matNxM_t B)
+   returns the matrix that results from component-wise subtraction of B from A
+
+* Matrix-matrix multiplication
+  matNxM_t mul(matNxK_t A, matKxM_t B)
+   N, M, K each can be one of 2, 3, or 4
+   returns the matrix resulting from the matrix multiply: AB
+
+* Matrix transpose
+  matNxM_t transpose(matMxN_t M)
+    Note: the ordering of N & M in the parameter & return type differ
+   returns the transpose of M
+
+* Matrix determinant
+  float det(matNxN_t M)
+    returns the determinant of the square matrix M
+
+* Matrix inverse
+  matNxN_t inverse(matNxN_t M)
+    returns the inverse of the square matrix M.
+     Note: Assumes that the inverse exists. If you're not sure if it does,
+    then make sure that det(M) != 0 first.
+
+
+----------------
+Matrix construction functions
+----------------
+
+* Identity matrix
+   matNxN_t identityN()
+    N is one of 2, 3, or 4
+    returns an NxN identity matrix
+
+* 2D rotation matrix
+  mat2x2_t rotate(float angle)
+   return the 2x2 rotation matrix for 2D counter-clockwise rotation by
+   the given angle. angle must be in radians.
+
+* 3D rotation matrix
+  mat3x3_t rotateX(float angle)
+  mat3x3_t rotateY(float angle)
+  mat3x3_t rotateZ(float angle)
+    return the 3x3 rotation matrix for 3D counter-clockwise rotation by
+    the given angle around the X, Y, or Z axis. angle must be in radians
+
+  mat4x4_t rotateXh(float angle)
+  mat4x4_t rotateYh(float angle)
+  mat4x4_t rotateZh(float angle)
+    return the 4x4 homogeneous rotation matrix for the 3D counter-clockwise
+    rotation by the given angle around the X, Y, or Z axis. angle must
+    be in radians
+
+  mat3x3_t rotateAxis(float angle, vec3_t v)
+    return the 3x3 rotation matrix for counter-clockwise rotation by
+    the given angle around the vector v. angle must be in radians.
+
+* 2D scaling
+  mat2x2_t scale(float sx, float sy)
+   return the 2x2 scaling matrix:
+    [sx   0]
+    [ 0  sy]
+
+* 3D scaling
+  mat3x3_t scale(float sx, float sy, float sz)
+   return the 3x3 scaling matrix:
+    [sx   0   0]
+    [ 0  sy   0]
+    [ 0   0  sz]
+
+  mat4x4_t scaleh(float sx, float sy, float sz)
+   return the 4x4 homogeneous scaling matrix:
+    [sx   0   0  0]
+    [ 0  sy   0  0]
+    [ 0   0  sz  0]
+    [ 0   0   0  1]
+
+* 2D shearing
+  mat2x2_t shear_x(float d)
+  mat2x2_t shear_y(float d)
+    return the 2x2 shearing matrix along the x or y axis
+
+* 3D shearing
+  mat3x3_t shear_x(float dy, float dz)
+    return [1   dy   dz]
+           [0    1    0]
+           [0    0    1]
+
+  mat3x3_t shear_y(float dx, float dz)
+    return [ 1   0    0]
+           [dx   1   dz]
+           [ 0   0    1]
+
+  mat3x3_t shear_z(float dx, float dy)
+    return [ 1   0    0]
+           [ 0   1    0]
+           [dx  dy    1]
+
+  mat4x4_t shearh_x(float dy, float dz)
+  mat4x4_t shearh_y(float dx, float dz)
+  mat4x4_t shearh_z(float dx, float dy)
+    return 4x4 homogeneous version of above.
+
+* Translation matrices
+  mat3x3_t translate(vec2_t v)
+    return the 3x3 matrix that will translate 2D points by the vector v
+
+  mat4x4_t translate(vec3_t v)
+    return the 4x4 matrix that will translate 3D points by the vector v
