@@ -517,6 +517,11 @@ void Assignment2::idle()
 	//   around the Y-axis by 0.5 * deltaT * m_rotationSpeed radians.
 	//   Note: Don't rotate if deltaT == 0
 
+	if (deltaT != 0)
+	{
+		m_lightPos = gml::mul(gml::rotateYh(0.5 * deltaT * m_rotationSpeed), m_lightPos);
+	}
+
 	m_lastIdleTime = currTime;
 }
 
