@@ -233,48 +233,34 @@ void ShadowMap::create(const Object::Object **scene, const GLuint nSceneObjects,
 	int index = 1;
 	for (int j = 0; j < 6; j++)
 	{
+		// a
 		switch(j)
 		{
 			case SHADOWMAP_POS_X:
 				index = SHADOWMAP_POS_X;
-
-				// a
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X, m_shadowmap, 0);
-
 				break;
 			case SHADOWMAP_POS_Y:
 				index = SHADOWMAP_POS_Y;
-
-				// a
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_Y, m_shadowmap, 0);
 				break;
 			case SHADOWMAP_POS_Z:
 				index = SHADOWMAP_POS_Z;
-
-				// a
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_Z, m_shadowmap, 0);
 				break;
 			case SHADOWMAP_NEG_X:
 				index = SHADOWMAP_NEG_X;
-
-				// a
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_NEGATIVE_X, m_shadowmap, 0);
 				break;
 			case SHADOWMAP_NEG_Y:
 				index = SHADOWMAP_NEG_Y;
-
-				// a
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, m_shadowmap, 0);
 				break;
 			case SHADOWMAP_NEG_Z:
 				index = SHADOWMAP_NEG_Z;
-
-				// a
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, m_shadowmap, 0);
 				break;
 		}
-
-
 
 		// b
 		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
