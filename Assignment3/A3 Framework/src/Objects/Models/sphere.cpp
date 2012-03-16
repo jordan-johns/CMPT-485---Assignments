@@ -168,6 +168,40 @@ bool Sphere::rayIntersects(const RayTracing::Ray_t &ray, const float t0, const f
 	//  If an intersection is found, then return true and set the appropriate fields
 	// of the hitinfo struct.
 	//  hitinfo struct should _not_ be altered unless there is definitely an intersection.
+	gml::vec3_t o_c = gml::sub(ray.o, gml::vec3_t(0,0,0));
+
+	float A = gml::dot(ray.d, ray.d);
+	float B = 2.0f * gml::dot(ray.d, o_c);
+	float C = gml::dot(o_c, o_c) - 1.0f;
+
+	float discriminant = sqrt(pow(B, 2) - 4.0f*A*C);
+	if (discriminant < 0)
+	{
+			return false;
+	}
+
+	float newt0 = 0.0f;
+	float newt1 = 0.0f;
+	newt0 = (-B + discriminant) / (2.0f*A);
+	newt1 = (-B - discriminant) / (2.0f*A);
+
+	float smallT = newt0;
+	if (newt1 < newt0)
+	{
+			smallT = newt1;
+	}
+
+	if (smallT >= t0 && smallT <= t1)
+	{
+			hitinfo.hitDist = smallT;
+
+			gml::vec3_t hitPos = gml::add(ray.o, gml::scale(smallT, ray.d));
+			hitinfo.sphere.hitPos = hitPos;
+
+			return true;
+	}
+
+
 	return false;
 }
 
@@ -176,6 +210,36 @@ bool Sphere::shadowsRay(const RayTracing::Ray_t &ray, const float t0, const floa
 	// TODO!!
 	//  Return true if and only if the ray intersects this sphere.
 	//  ray is given in _object space_ coordinates.
+
+	gml::vec3_t o_c = gml::sub(ray.o, gml::vec3_t(0,0,0));
+
+	float A = gml::dot(ray.d, ray.d);
+	float B = 2.0f * gml::dot(ray.d, o_c);
+	float C = gml::dot(o_c, o_c) - 1.0f;
+
+	float discriminant = sqrtf(powf(B, 2.0f) - 4.0f*A*C);
+	if (discriminant < 0)
+	{
+			return false;
+	}
+
+	float newt0 = 0.0f;
+	float newt1 = 0.0f;
+	newt0 = (-B + discriminant) / (2.0f*A);
+	newt1 = (-B - discriminant) / (2.0f*A);
+
+	float smallT = newt0;
+	if (newt1 < newt0)
+	{
+			smallT = newt1;
+	}
+
+	if (smallT >= t0 && smallT <= t1)
+	{
+			return true;
+	}
+
+
 	return false;
 }
 
@@ -195,6 +259,8 @@ void Sphere::hitProperties(const RayTracing::HitInfo_t &hitinfo, gml::vec3_t &no
 	// to simplify this calculation.
 	//  Note2: You can/should use the getTexCoords() function, above, to calculate the texture
 	//  coordinates of a point on the sphere given the object-space position of a point on the sphere.
+	texCoords = getTexCoords(hitinfo.sphere.hitPos);
+	normal = gml::normalize(hitinfo.sphere.hitPos);
 }
 
 
