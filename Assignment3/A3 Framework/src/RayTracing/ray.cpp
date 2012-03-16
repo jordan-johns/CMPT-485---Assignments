@@ -42,6 +42,8 @@ void _Ray_t::randomDirection(const gml::vec3_t &n)
 
 	// You will find the randFloat() function above useful for generating
 	// the random numbers required.
+	this->d = gml::add(n, gml::vec3_t(randFloat(), randFloat(), randFloat()));
+
 }
 
 }
