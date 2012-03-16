@@ -187,6 +187,13 @@ bool Scene::shadowsRay(const RayTracing::Ray_t &ray, const float t0, const float
 	//  Note: Just need to know whether it intersects _an_ object, not the nearest.
 
 	// Return true if the ray intersects an object, false otherwise
+	for (unsigned i = 0; i < m_nObjects; i++)
+	{
+			if (m_scene[i]->shadowsRay(ray, t0, t1))
+			{
+					return true;
+			}
+	}
 
 	// Note: Having this return false will effectively disable/ignore shadows
 	return false;
@@ -215,12 +222,44 @@ gml::vec3_t Scene::shadeRay(const RayTracing::Ray_t &ray, RayTracing::HitInfo_t 
 	// When implementing shadows, then the direct lighting component of the
 	// calculated ray color will be black if the point is in shadow.
 
-	gml::vec3_t shade(0.5, 0.5, 0.5);
-	RayTracing::ShaderValues sv(hitinfo.objHit->getMaterial());
+	//ml::vec3_t shade(0.5, 0.5, 0.5);
+	//RayTracing::ShaderValues sv(hitinfo.objHit->getMaterial());
 
 	// Note: For debugging your rayIntersection() function, this function
 	// returns some non-black constant color at first. When you actually implement
 	// this function, then initialize shade to black (0,0,0).
+
+	gml::vec3_t shade(0.0, 0.0, 0.0);
+	gml::vec2_t texCoord;
+	gml::vec3_t normal;
+
+	hitinfo.objHit->hitProperties(hitinfo, normal, texCoord);
+
+	RayTracing::ShaderValues shaderVal(hitinfo.objHit->getMaterial());
+	shaderVal.n = normal;
+	shaderVal.p = gml::add(ray.o, gml::scale(hitinfo.hitDist, ray.d));
+	shaderVal.e = gml::normalize(gml::scale(-1.0f, ray.d));
+	shaderVal.tex = texCoord;
+	shaderVal.lightDir = gml::normalize(gml::sub(gml::extract3(m_lightPos), shaderVal.p));
+	shaderVal.lightRad = m_lightRad;
+
+	float distToLight = gml::length(gml::sub(gml::extract3(m_lightPos), shaderVal.p));
+
+	// test if in shadow
+	RayTracing::Ray_t shadowRay;
+	shadowRay.o = shaderVal.p;
+	shadowRay.d = shaderVal.lightDir;
+	if (!shadowsRay(shadowRay, 0.000001f, distToLight))
+	{
+			// direct lighting
+			shade = m_shaderManager.getShader(hitinfo.objHit->getMaterial())->shade(shaderVal);
+	}
+	else
+	{
+			shade = gml::vec3_t(0,0,0);
+	}
+
+
 
 	return shade;
 }
