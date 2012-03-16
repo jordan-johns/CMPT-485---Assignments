@@ -43,6 +43,22 @@ void Camera::setWindowToWorld()
 	// invert.
 
 	// TODO!!
+	gml::mat4x4_t windowMat;
+	windowMat[0][0] = m_windowWidth / 2.0f;
+	windowMat[1][1] = m_windowHeight / 2.0f;
+	windowMat[2][2] = -0.5f;
+
+	windowMat[3][0] = m_windowWidth / 2.0f;
+	windowMat[3][1] = m_windowHeight / 2.0f;
+	windowMat[3][2] = 0.5f;
+	windowMat[3][3] = 1.0f;
+
+	gml::mat4x4_t invWindow = gml::inverse(windowMat);
+	gml::mat4x4_t invWorldView = gml::inverse(m_worldView);
+	gml::mat4x4_t invOrtho = gml::inverse(m_ortho);
+
+	m_windowToWorld = gml::mul(invWorldView, gml::mul(invOrtho, invWindow) );
+
 }
 
 
@@ -210,6 +226,13 @@ RayTracing::Ray_t Camera::genViewRay(float x, float y) const
 	//   Note: Use m_windowToWorld
 	RayTracing::Ray_t ray;
 
+	// Note that normally Z = 1 should be far plane,
+	// it is near here.
+	gml::vec4_t pixel = gml::vec4_t(x, y, 1, 1);
+	gml::vec4_t worldPixel = gml::mul(m_windowToWorld, pixel);
+
+	ray.o = m_camPos;
+	ray.d = gml::normalize(gml::sub(gml::extract3(worldPixel), m_camPos));
 
 	return ray;
 }

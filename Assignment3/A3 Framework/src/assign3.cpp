@@ -549,6 +549,15 @@ void Assignment3::idle()
 					//  The recursive depth for shading the ray is given by the
 					// constant MAX_RAY_DEPTH (found at top of this file)
 
+					ray = m_camera.genViewRay(x, y);
+
+					// @HACK - fix color shade
+					if (m_scene.rayIntersects(ray, m_camera.getNearClip(), m_camera.getFarClip(), hitinfo))
+					{
+							//clr = hitinfo.objHit->getMaterial().getSurfRefl();
+							clr = m_scene.shadeRay(ray, hitinfo, MAX_RAY_DEPTH);
+					}
+
 					// Use 'clr' to update the image
 					if (m_rtPassNum == 0)
 					{

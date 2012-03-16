@@ -159,7 +159,25 @@ bool Scene::rayIntersects(const RayTracing::Ray_t &ray, const float t0, const fl
 	// TODO
 	//   Find the closest intersection of the ray in the distance range [t0,t1].
 	// Return true if an intersection was found, false otherwise
-	return false;
+	// Return true if an intersection was found, false otherwise
+	RayTracing::HitInfo_t tmpInfo;
+
+	hitinfo.hitDist = t1;
+	tmpInfo.hitDist = t1;
+	bool retVal = false;
+	for (unsigned int i = 0; i < m_nObjects; i++)
+	{
+			if (m_scene[i]->rayIntersects(ray, t0, t1, tmpInfo))
+			{
+					if (tmpInfo.hitDist < hitinfo.hitDist )
+					{
+							hitinfo = tmpInfo;
+							retVal = true;
+					}
+			}
+	}
+
+	return retVal;
 }
 
 bool Scene::shadowsRay(const RayTracing::Ray_t &ray, const float t0, const float t1) const
