@@ -106,6 +106,8 @@ bool Sphere::init(const uint8_t nFacetIterations)
 	GLuint numFaces = 8 * (1 << (2*nFacetIterations));
 	GLuint numVerts = 6 + 2 + numFaces / 2 + ( (1<<(nFacetIterations+1)) - 1);
 
+	printf("\n\n\n\nNumber of verts is: %d\n\n\n\n", numVerts);
+
 	positions = (gml::vec3_t*)malloc((sizeof(gml::vec3_t) + sizeof(gml::vec2_t))*numVerts + sizeof(GLuint)*3*numFaces);
 	if (!positions)
 	{
