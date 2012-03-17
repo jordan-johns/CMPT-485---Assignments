@@ -43,6 +43,7 @@ typedef struct {
 	// Replace placeholder with whatever information you believe to
 	// be necessary to cache.
 	int placeholder;
+	gml::vec3_t hitPos;
 } SphereHitInfo_t;
 
 typedef struct {

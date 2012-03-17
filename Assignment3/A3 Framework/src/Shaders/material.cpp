@@ -24,6 +24,9 @@ Material::Material()
 	m_specRefl = gml::vec3_t(1.0, 1.0, 1.0);
 
 	m_shadeType = GOURAUD;
+
+	m_mirror = false;
+	m_mirrorRefl = gml::vec3_t(1.0, 1.0, 1.0);
 }
 Material::~Material()
 {

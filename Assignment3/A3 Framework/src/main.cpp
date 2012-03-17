@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 
 	// Create & initialize the program object
 	int choice=3;
-#if 1
+#if 0
 	do
 	{
 		printf("\n"

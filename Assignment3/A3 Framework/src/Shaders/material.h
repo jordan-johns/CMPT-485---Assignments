@@ -59,6 +59,10 @@ protected:
 	ShaderType m_shadeType; // default: GOURAUD
 
 	const Texture::Texture *m_texture; // default: 0
+
+	bool m_mirror; //default :false
+	gml::vec3_t m_mirrorRefl; // default: 1,1,1
+
 public:
 	Material();
 	~Material();
@@ -83,6 +87,15 @@ public:
 	void setShaderType(const ShaderType type);
 	// Set the texture. Set to 0 to turn off texture
 	void setTexture(const Texture::Texture *texture);
+
+	// Set the material to be a mirror.
+	void setMirror(bool b) { m_mirror = b; }
+	// Returns whether or not the material is a mirror.
+	bool isMirror() { return m_mirror; }
+	// Returns mirror reflectance.
+	const gml::vec3_t& getMirrorRefl() { return m_mirrorRefl; }
+	// Sets the mirror reflectance.
+	void setMirrorReflectance(const gml::vec3_t &mirrorRef) { m_mirrorRefl = mirrorRef;}
 };
 
 }

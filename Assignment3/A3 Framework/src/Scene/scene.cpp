@@ -15,6 +15,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <cfloat>
 
 namespace Scene
 {
@@ -159,7 +160,25 @@ bool Scene::rayIntersects(const RayTracing::Ray_t &ray, const float t0, const fl
 	// TODO
 	//   Find the closest intersection of the ray in the distance range [t0,t1].
 	// Return true if an intersection was found, false otherwise
-	return false;
+	// Return true if an intersection was found, false otherwise
+	RayTracing::HitInfo_t tmpInfo;
+
+	hitinfo.hitDist = t1;
+	tmpInfo.hitDist = t1;
+	bool retVal = false;
+	for (unsigned int i = 0; i < m_nObjects; i++)
+	{
+			if (m_scene[i]->rayIntersects(ray, t0, t1, tmpInfo))
+			{
+					if (tmpInfo.hitDist < hitinfo.hitDist )
+					{
+							hitinfo = tmpInfo;
+							retVal = true;
+					}
+			}
+	}
+
+	return retVal;
 }
 
 bool Scene::shadowsRay(const RayTracing::Ray_t &ray, const float t0, const float t1) const
@@ -169,6 +188,13 @@ bool Scene::shadowsRay(const RayTracing::Ray_t &ray, const float t0, const float
 	//  Note: Just need to know whether it intersects _an_ object, not the nearest.
 
 	// Return true if the ray intersects an object, false otherwise
+	for (unsigned i = 0; i < m_nObjects; i++)
+	{
+			if (m_scene[i]->shadowsRay(ray, t0, t1))
+			{
+					return true;
+			}
+	}
 
 	// Note: Having this return false will effectively disable/ignore shadows
 	return false;
@@ -197,14 +223,96 @@ gml::vec3_t Scene::shadeRay(const RayTracing::Ray_t &ray, RayTracing::HitInfo_t 
 	// When implementing shadows, then the direct lighting component of the
 	// calculated ray color will be black if the point is in shadow.
 
-	gml::vec3_t shade(0.5, 0.5, 0.5);
-	RayTracing::ShaderValues sv(hitinfo.objHit->getMaterial());
+	//ml::vec3_t shade(0.5, 0.5, 0.5);
+	//RayTracing::ShaderValues sv(hitinfo.objHit->getMaterial());
+
+	// Note: For debugging your rayIntersection() function, this function
+	// returns some non-black constant color at first. When you actually implement
+	// this function, then initialize shade to black (0,0,0).
+
+	gml::vec3_t shade(0.0, 0.0, 0.0);
+	gml::vec2_t texCoord;
+	gml::vec3_t normal;
+
+	hitinfo.objHit->hitProperties(hitinfo, normal, texCoord);
+
+	RayTracing::ShaderValues shaderVal(hitinfo.objHit->getMaterial());
+	shaderVal.n = normal;
+	shaderVal.p = gml::add(ray.o, gml::scale(hitinfo.hitDist, ray.d));
+	shaderVal.e = gml::normalize(gml::scale(-1.0f, ray.d));
+	shaderVal.tex = texCoord;
+	shaderVal.lightDir = gml::normalize(gml::sub(gml::extract3(m_lightPos), shaderVal.p));
+	shaderVal.lightRad = m_lightRad;
+
+	float distToLight = gml::length(gml::sub(gml::extract3(m_lightPos), shaderVal.p));
+
+	// test if in shadow
+	RayTracing::Ray_t shadowRay;
+	shadowRay.o = shaderVal.p;
+	shadowRay.d = shaderVal.lightDir;
+	if (!shadowsRay(shadowRay, 0.001, distToLight))
+	{
+			// direct lighting
+			shade = m_shaderManager.getShader(hitinfo.objHit->getMaterial())->shade(shaderVal);
+	}
+	else
+	{
+			shade = gml::vec3_t(0,0,0);
+
+	}
+
+
+
+	// bounces
+	if (remainingRecursionDepth > 0)
+	{
+			// mirrors
+			if (hitinfo.objHit->getMaterial().isMirror())
+			{
+					RayTracing::Ray_t mirrorRay;
+					mirrorRay.o = shaderVal.p;
+					mirrorRay.d = gml::normalize(gml::scale(-1, gml::reflect(ray.d, normal)));
+
+
+					RayTracing::HitInfo_t mirrorHitInfo;
+					if (this->rayIntersects(mirrorRay, 0.000001f, FLT_MAX, mirrorHitInfo))
+					{
+							gml::vec3_t mirrorShade = shadeRay(mirrorRay, mirrorHitInfo, remainingRecursionDepth - 1);
+							shade = gml::add(shade, gml::mul(hitinfo.objHit->getMaterial().getMirrorRefl(), mirrorShade));
+					}
+			}
+
+			// indirect lighting
+			RayTracing::Ray_t indirectRay;
+			indirectRay.o = shaderVal.p;
+			indirectRay.randomDirection(normal);
+
+			RayTracing::HitInfo_t indirectHitInfo;
+			if (this->rayIntersects(indirectRay, 0.000001f, FLT_MAX, indirectHitInfo))
+			{
+					// WRONG
+					//gml::vec3_t indirectShade = shadeRay(indirectRay, indirectHitInfo, remainingRecursionDepth - 1);
+
+					//m_lightPos = indirectHitInfo.objHit->;
+
+					shaderVal.lightRad = shadeRay(indirectRay, indirectHitInfo, remainingRecursionDepth - 1);
+
+
+					shaderVal.lightDir = gml::normalize(gml::sub(gml::extract3(m_lightPos), shaderVal.p));
+					gml::vec3_t indirectShade = m_shaderManager.getShader(hitinfo.objHit->getMaterial())->shade(shaderVal);
+
+
+
+					shade = gml::add(shade, indirectShade);
+			}
+	}
 
 	// Note: For debugging your rayIntersection() function, this function
 	// returns some non-black constant color at first. When you actually implement
 	// this function, then initialize shade to black (0,0,0).
 
 	return shade;
+
 }
 
 }
