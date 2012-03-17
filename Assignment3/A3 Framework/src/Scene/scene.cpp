@@ -166,8 +166,11 @@ bool Scene::rayIntersects(const RayTracing::Ray_t &ray, const float t0, const fl
 	hitinfo.hitDist = t1;
 	tmpInfo.hitDist = t1;
 	bool retVal = false;
+
+	// Go through each object in the scene to check for intersections with the ray.
 	for (unsigned int i = 0; i < m_nObjects; i++)
 	{
+			// If it intersects...
 			if (m_scene[i]->rayIntersects(ray, t0, t1, tmpInfo))
 			{
 					if (tmpInfo.hitDist < hitinfo.hitDist )
@@ -187,7 +190,7 @@ bool Scene::shadowsRay(const RayTracing::Ray_t &ray, const float t0, const float
 	//  Determine whether or not the ray intersects an object in the distance range [t0,t1].
 	//  Note: Just need to know whether it intersects _an_ object, not the nearest.
 
-	// Return true if the ray intersects an object, false otherwise
+	// Return true if the ray intersects an object, false otherwise.
 	for (unsigned i = 0; i < m_nObjects; i++)
 	{
 			if (m_scene[i]->shadowsRay(ray, t0, t1))
@@ -263,46 +266,44 @@ gml::vec3_t Scene::shadeRay(const RayTracing::Ray_t &ray, RayTracing::HitInfo_t 
 
 
 
-	// bounces
+	// Only proceed if the recursion depth limit has not been met.
 	if (remainingRecursionDepth > 0)
 	{
-			// mirrors
+			// Mirror checks, and shading.
 			if (hitinfo.objHit->getMaterial().isMirror())
 			{
+					// Ray for mirrors.
 					RayTracing::Ray_t mirrorRay;
 					mirrorRay.o = shaderVal.p;
 					mirrorRay.d = gml::normalize(gml::scale(-1, gml::reflect(ray.d, normal)));
 
-
 					RayTracing::HitInfo_t mirrorHitInfo;
-					if (this->rayIntersects(mirrorRay, 0.000001f, FLT_MAX, mirrorHitInfo))
+
+					// If intersection, get the mirror shading color and apply it.
+					if (this->rayIntersects(mirrorRay, 0.001f, FLT_MAX, mirrorHitInfo))
 					{
 							gml::vec3_t mirrorShade = shadeRay(mirrorRay, mirrorHitInfo, remainingRecursionDepth - 1);
 							shade = gml::add(shade, gml::mul(hitinfo.objHit->getMaterial().getMirrorRefl(), mirrorShade));
 					}
 			}
 
-			// indirect lighting
+			// Setup indirect lighting.
 			RayTracing::Ray_t indirectRay;
 			indirectRay.o = shaderVal.p;
-			indirectRay.randomDirection(normal);
+			indirectRay.randomDirection(shaderVal.n);
 
 			RayTracing::HitInfo_t indirectHitInfo;
-			if (this->rayIntersects(indirectRay, 0.000001f, FLT_MAX, indirectHitInfo))
+
+			// If intersection, apply indirect ray for indirect lighting.
+			if (this->rayIntersects(indirectRay, 0.001f, FLT_MAX, indirectHitInfo))
 			{
-					// WRONG
-					//gml::vec3_t indirectShade = shadeRay(indirectRay, indirectHitInfo, remainingRecursionDepth - 1);
 
-					//m_lightPos = indirectHitInfo.objHit->;
-
+					shaderVal.lightDir = indirectRay.d;
 					shaderVal.lightRad = shadeRay(indirectRay, indirectHitInfo, remainingRecursionDepth - 1);
 
-
-					shaderVal.lightDir = gml::normalize(gml::sub(gml::extract3(m_lightPos), shaderVal.p));
 					gml::vec3_t indirectShade = m_shaderManager.getShader(hitinfo.objHit->getMaterial())->shade(shaderVal);
 
-
-
+					// Add together to the cumulative color.
 					shade = gml::add(shade, indirectShade);
 			}
 	}
@@ -311,6 +312,7 @@ gml::vec3_t Scene::shadeRay(const RayTracing::Ray_t &ray, RayTracing::HitInfo_t 
 	// returns some non-black constant color at first. When you actually implement
 	// this function, then initialize shade to black (0,0,0).
 
+	// Return the cumulative color for the point.
 	return shade;
 
 }

@@ -170,15 +170,21 @@ bool Sphere::rayIntersects(const RayTracing::Ray_t &ray, const float t0, const f
 	//  hitinfo struct should _not_ be altered unless there is definitely an intersection.
 	gml::vec3_t o_c = gml::sub(ray.o, gml::vec3_t(0,0,0));
 
+	// Initialize the 3 terms from the formula breakdown.
 	float A = gml::dot(ray.d, ray.d);
 	float B = 2.0f * gml::dot(ray.d, o_c);
 	float C = gml::dot(o_c, o_c) - 1.0f;
 
+	// Discriminant from quadratic formula (using previous terms).
 	float discriminant = sqrt(pow(B, 2) - 4.0f*A*C);
+
+	// discriminant cannot be zero.
 	if (discriminant < 0)
 	{
-			return false;
+		// fail.
+		return false;
 	}
+
 
 	float newt0 = 0.0f;
 	float newt1 = 0.0f;
@@ -188,17 +194,20 @@ bool Sphere::rayIntersects(const RayTracing::Ray_t &ray, const float t0, const f
 	float smallT = newt0;
 	if (newt1 < newt0)
 	{
-			smallT = newt1;
+		smallT = newt1;
 	}
 
+	// We have a hit!
 	if (smallT >= t0 && smallT <= t1)
 	{
-			hitinfo.hitDist = smallT;
+		// Record the hit distance.
+		hitinfo.hitDist = smallT;
 
-			gml::vec3_t hitPos = gml::add(ray.o, gml::scale(smallT, ray.d));
-			hitinfo.sphere.hitPos = hitPos;
+		// Record the hit distance.
+		gml::vec3_t hitPos = gml::add(ray.o, gml::scale(smallT, ray.d));
+		hitinfo.sphere.hitPos = hitPos;
 
-			return true;
+		return true;
 	}
 
 
@@ -213,13 +222,20 @@ bool Sphere::shadowsRay(const RayTracing::Ray_t &ray, const float t0, const floa
 
 	gml::vec3_t o_c = gml::sub(ray.o, gml::vec3_t(0,0,0));
 
+	// Initialize the 3 terms from the formula breakdown.
 	float A = gml::dot(ray.d, ray.d);
 	float B = 2.0f * gml::dot(ray.d, o_c);
 	float C = gml::dot(o_c, o_c) - 1.0f;
 
+	// Discriminant from quadratic formula (using previous terms).
 	float discriminant = sqrtf(powf(B, 2.0f) - 4.0f*A*C);
+
+
+
+	// discriminant cannot be zero.
 	if (discriminant < 0)
 	{
+			// fail.
 			return false;
 	}
 
@@ -229,11 +245,11 @@ bool Sphere::shadowsRay(const RayTracing::Ray_t &ray, const float t0, const floa
 	newt1 = (-B - discriminant) / (2.0f*A);
 
 	float smallT = newt0;
+
 	if (newt1 < newt0)
 	{
 			smallT = newt1;
 	}
-
 	if (smallT >= t0 && smallT <= t1)
 	{
 			return true;

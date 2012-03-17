@@ -153,8 +153,8 @@ bool Assignment3::init()
 
 	Material::Material mat;
 
-	// derp
-		mat.setMirror(true);
+	// Make everything a mirror!
+	//mat.setMirror(true);
 
 	mat.setShaderType(Material::PHONG);
 
@@ -169,12 +169,14 @@ bool Assignment3::init()
 	mat.setTexture(m_texture);
 	m_scene.addObject(new Object::Object(m_geometry[PLANE_LOC], mat,
 			gml::mul(gml::translate(gml::vec3_t(0.0,0.0,0.0)), gml::scaleh(5.0, 1.0, 5.0)) ) );
+
 	// Box "top"
 	mat.setTexture(0);
 	m_scene.addObject(new Object::Object(m_geometry[PLANE_LOC], mat,
 			gml::mul(gml::translate(gml::vec3_t(0.5,5.0,0.0)), gml::mul(gml::rotateZh(2*pi2),gml::scaleh(5.0, 1.0, 5.0))) ) );
 
 	// "Box" walls
+	mat.setMirror(true);
 	mat.setSurfReflectance(green);
 	m_scene.addObject(new Object::Object(m_geometry[PLANE_LOC], mat,
 			gml::mul(gml::translate(gml::vec3_t(5.0,2.5,0.0)), gml::mul(gml::rotateZh(pi2),gml::scaleh(2.5, 1.0, 5.0))) ) );
@@ -185,7 +187,7 @@ bool Assignment3::init()
 			gml::mul(gml::translate(gml::vec3_t(0.0,2.5,5.0)), gml::mul(gml::rotateXh(-pi2),gml::scaleh(5.0, 1.0, 2.5))) ));
 	m_scene.addObject(new Object::Object(m_geometry[PLANE_LOC], mat,
 			gml::mul(gml::translate(gml::vec3_t(0.0,2.5,-5.0)), gml::mul(gml::rotateXh(pi2),gml::scaleh(5.0, 1.0, 2.5))) ));
-
+	mat.setMirror(false);
 
 	// Light blocker
 	mat.setSurfReflectance(beige);
@@ -196,6 +198,7 @@ bool Assignment3::init()
 	gml::mat4x4_t rotScale = gml::mul( gml::rotateYh((25.0f * M_PI)/180.0), gml::scaleh(0.5,0.5,0.5) );
 	// Some other objects
 	mat.setSurfReflectance(beige);
+	mat.setMirror(true);
 	m_scene.addObject(new Object::Object(m_geometry[OCTAHEDRON_LOC], mat,
 			gml::mul(gml::translate(gml::vec3_t(0.0,0.75,0.0)), rotScale)) );
 
@@ -207,7 +210,7 @@ bool Assignment3::init()
 
 
 	// Right Sphere
-	mat.setMirror(false);
+	mat.setMirror(true);
 	mat.setSurfReflectance(beige);
 		m_scene.addObject(new Object::Object(m_geometry[SPHERE_LOC], mat,
 				gml::mul(gml::translate(gml::vec3_t(2.0,0.75,-2.0)), rotScale)) );
@@ -564,11 +567,9 @@ void Assignment3::idle()
 
 					ray = m_camera.genViewRay(x, y);
 
-					// @HACK - fix color shade
 					if (m_scene.rayIntersects(ray, m_camera.getNearClip(), m_camera.getFarClip(), hitinfo))
 					{
-							//clr = hitinfo.objHit->getMaterial().getSurfRefl();
-							clr = m_scene.shadeRay(ray, hitinfo, 5);
+							clr = m_scene.shadeRay(ray, hitinfo, MAX_RAY_DEPTH);
 					}
 
 					// Use 'clr' to update the image

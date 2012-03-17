@@ -43,21 +43,25 @@ void Camera::setWindowToWorld()
 	// invert.
 
 	// TODO!!
-	gml::mat4x4_t windowMat;
-	windowMat[0][0] = m_windowWidth / 2.0f;
-	windowMat[1][1] = m_windowHeight / 2.0f;
-	windowMat[2][2] = -0.5f;
 
-	windowMat[3][0] = m_windowWidth / 2.0f;
-	windowMat[3][1] = m_windowHeight / 2.0f;
-	windowMat[3][2] = 0.5f;
-	windowMat[3][3] = 1.0f;
+	// Construct the matrix.
+	gml::mat4x4_t windowToWorld;
+	windowToWorld[0][0] = m_windowWidth / 2.0f;
+	windowToWorld[1][1] = m_windowHeight / 2.0f;
+	windowToWorld[2][2] = -0.5f;
 
-	gml::mat4x4_t invWindow = gml::inverse(windowMat);
-	gml::mat4x4_t invWorldView = gml::inverse(m_worldView);
-	gml::mat4x4_t invOrtho = gml::inverse(m_ortho);
+	windowToWorld[3][0] = m_windowWidth / 2.0f;
+	windowToWorld[3][1] = m_windowHeight / 2.0f;
+	windowToWorld[3][2] = 0.5f;
+	windowToWorld[3][3] = 1.0f;
 
-	m_windowToWorld = gml::mul(invWorldView, gml::mul(invOrtho, invWindow) );
+	// Calculate the inverses.
+	gml::mat4x4_t windowInverse = gml::inverse(windowToWorld);
+	gml::mat4x4_t worldViewInverse = gml::inverse(m_worldView);
+	gml::mat4x4_t orthoInverse = gml::inverse(m_ortho);
+
+	// Finalize the window to world matrix.
+	m_windowToWorld = gml::mul(worldViewInverse, gml::mul(orthoInverse, windowInverse) );
 
 }
 
@@ -224,15 +228,18 @@ RayTracing::Ray_t Camera::genViewRay(float x, float y) const
 	// position, and through the world-space position of
 	// the screen-space point (x,y).
 	//   Note: Use m_windowToWorld
+
+	// Create the ray.
 	RayTracing::Ray_t ray;
 
 	// Note that normally Z = 1 should be far plane,
 	// it is near here.
 	gml::vec4_t pixel = gml::vec4_t(x, y, 1, 1);
-	gml::vec4_t worldPixel = gml::mul(m_windowToWorld, pixel);
+	gml::vec4_t wPixel = gml::mul(m_windowToWorld, pixel);
 
+	// Initialize the ray.
 	ray.o = m_camPos;
-	ray.d = gml::normalize(gml::sub(gml::extract3(worldPixel), m_camPos));
+	ray.d = gml::normalize(gml::sub(gml::extract3(wPixel), m_camPos));
 
 	return ray;
 }
