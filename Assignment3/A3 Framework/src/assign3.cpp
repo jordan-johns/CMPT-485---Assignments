@@ -153,6 +153,9 @@ bool Assignment3::init()
 
 	Material::Material mat;
 
+	// derp
+		mat.setMirror(true);
+
 	mat.setShaderType(Material::PHONG);
 
 	gml::vec3_t beige(0.76, 0.75, 0.5);
@@ -195,10 +198,19 @@ bool Assignment3::init()
 	mat.setSurfReflectance(beige);
 	m_scene.addObject(new Object::Object(m_geometry[OCTAHEDRON_LOC], mat,
 			gml::mul(gml::translate(gml::vec3_t(0.0,0.75,0.0)), rotScale)) );
-	m_scene.addObject(new Object::Object(m_geometry[SPHERE_LOC], mat,
-			gml::mul(gml::translate(gml::vec3_t(2.0,0.75,-2.0)), rotScale)) );
-	m_scene.addObject(new Object::Object(m_geometry[SPHERE_LOC], mat,
-			gml::mul(gml::translate(gml::vec3_t(-2.0,0.75,-2.0)), rotScale)) );
+
+	// Left Sphere
+	mat.setMirror(true);
+	mat.setSurfReflectance(gml::vec3_t(0,0,0));
+		m_scene.addObject(new Object::Object(m_geometry[SPHERE_LOC], mat,
+				gml::mul(gml::translate(gml::vec3_t(-2.0,0.75,-2.0)), rotScale)) );
+
+
+	// Right Sphere
+	mat.setMirror(false);
+	mat.setSurfReflectance(beige);
+		m_scene.addObject(new Object::Object(m_geometry[SPHERE_LOC], mat,
+				gml::mul(gml::translate(gml::vec3_t(2.0,0.75,-2.0)), rotScale)) );
 
 	// =============================================================================================
 
@@ -538,7 +550,8 @@ void Assignment3::idle()
 
 					// (x,y) give the screen-space (aka: image-space, or window-space) coordinates of
 					// the ray to be cast.
-					const float x = c - 0.5 + rand() / ((float)RAND_MAX), y = m_rtRow - 0.5 + rand() / ((float)RAND_MAX);
+					const float x = c - 0.5 + rand() / ((float)RAND_MAX);
+					const float	y = m_rtRow - 0.5 + rand() / ((float)RAND_MAX);
 
 
 					// TODO!!
@@ -555,7 +568,7 @@ void Assignment3::idle()
 					if (m_scene.rayIntersects(ray, m_camera.getNearClip(), m_camera.getFarClip(), hitinfo))
 					{
 							//clr = hitinfo.objHit->getMaterial().getSurfRefl();
-							clr = m_scene.shadeRay(ray, hitinfo, MAX_RAY_DEPTH);
+							clr = m_scene.shadeRay(ray, hitinfo, 5);
 					}
 
 					// Use 'clr' to update the image

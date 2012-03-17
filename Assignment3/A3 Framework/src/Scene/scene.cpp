@@ -15,6 +15,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <cfloat>
 
 namespace Scene
 {
@@ -249,7 +250,7 @@ gml::vec3_t Scene::shadeRay(const RayTracing::Ray_t &ray, RayTracing::HitInfo_t 
 	RayTracing::Ray_t shadowRay;
 	shadowRay.o = shaderVal.p;
 	shadowRay.d = shaderVal.lightDir;
-	if (!shadowsRay(shadowRay, 0.000001f, distToLight))
+	if (!shadowsRay(shadowRay, 0.001, distToLight))
 	{
 			// direct lighting
 			shade = m_shaderManager.getShader(hitinfo.objHit->getMaterial())->shade(shaderVal);
@@ -257,11 +258,61 @@ gml::vec3_t Scene::shadeRay(const RayTracing::Ray_t &ray, RayTracing::HitInfo_t 
 	else
 	{
 			shade = gml::vec3_t(0,0,0);
+
 	}
 
 
 
+	// bounces
+	if (remainingRecursionDepth > 0)
+	{
+			// mirrors
+			if (hitinfo.objHit->getMaterial().isMirror())
+			{
+					RayTracing::Ray_t mirrorRay;
+					mirrorRay.o = shaderVal.p;
+					mirrorRay.d = gml::normalize(gml::scale(-1, gml::reflect(ray.d, normal)));
+
+
+					RayTracing::HitInfo_t mirrorHitInfo;
+					if (this->rayIntersects(mirrorRay, 0.000001f, FLT_MAX, mirrorHitInfo))
+					{
+							gml::vec3_t mirrorShade = shadeRay(mirrorRay, mirrorHitInfo, remainingRecursionDepth - 1);
+							shade = gml::add(shade, gml::mul(hitinfo.objHit->getMaterial().getMirrorRefl(), mirrorShade));
+					}
+			}
+
+			// indirect lighting
+			RayTracing::Ray_t indirectRay;
+			indirectRay.o = shaderVal.p;
+			indirectRay.randomDirection(normal);
+
+			RayTracing::HitInfo_t indirectHitInfo;
+			if (this->rayIntersects(indirectRay, 0.000001f, FLT_MAX, indirectHitInfo))
+			{
+					// WRONG
+					//gml::vec3_t indirectShade = shadeRay(indirectRay, indirectHitInfo, remainingRecursionDepth - 1);
+
+					//m_lightPos = indirectHitInfo.objHit->;
+
+					shaderVal.lightRad = shadeRay(indirectRay, indirectHitInfo, remainingRecursionDepth - 1);
+
+
+					shaderVal.lightDir = gml::normalize(gml::sub(gml::extract3(m_lightPos), shaderVal.p));
+					gml::vec3_t indirectShade = m_shaderManager.getShader(hitinfo.objHit->getMaterial())->shade(shaderVal);
+
+
+
+					shade = gml::add(shade, indirectShade);
+			}
+	}
+
+	// Note: For debugging your rayIntersection() function, this function
+	// returns some non-black constant color at first. When you actually implement
+	// this function, then initialize shade to black (0,0,0).
+
 	return shade;
+
 }
 
 }

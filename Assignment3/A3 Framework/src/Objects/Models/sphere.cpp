@@ -243,25 +243,26 @@ bool Sphere::shadowsRay(const RayTracing::Ray_t &ray, const float t0, const floa
 	return false;
 }
 
-static inline gml::vec2_t getTexCoords(gml::vec3_t &position)
+static inline gml::vec2_t getTexCoords(const gml::vec3_t &position)
 {
-	gml::vec2_t texcoords;
-	texcoords.s = ( atan2(position.z, -position.x) / M_PI + 1 ) / 2.0f;
-	texcoords.t = ( asin(-position.y )/M_PI + 1) / 2;
-	return texcoords;
+        gml::vec2_t texcoords;
+        texcoords.s = ( atan2(position.z, -position.x) / M_PI + 1 ) / 2.0f;
+        texcoords.t = ( asin(-position.y )/M_PI + 1) / 2;
+        return texcoords;
 }
 
 void Sphere::hitProperties(const RayTracing::HitInfo_t &hitinfo, gml::vec3_t &normal, gml::vec2_t &texCoords) const
 {
-	// TODO
-	// Calculate the normal and texture coordinates of a hit point.
-	//  Note: It is up to you to figure out what information should be recorded in hitinfo.sphere
-	// to simplify this calculation.
-	//  Note2: You can/should use the getTexCoords() function, above, to calculate the texture
-	//  coordinates of a point on the sphere given the object-space position of a point on the sphere.
-	texCoords = getTexCoords(hitinfo.sphere.hitPos);
-	normal = gml::normalize(hitinfo.sphere.hitPos);
+        // TODO
+        // Calculate the normal and texture coordinates of a hit point.
+        //  Note: It is up to you to figure out what information should be recorded in hitinfo.sphere
+        // to simplify this calculation.
+        //  Note2: You can/should use the getTexCoords() function, above, to calculate the texture
+        //  coordinates of a point on the sphere given the object-space position of a point on the sphere.
+        texCoords = getTexCoords(hitinfo.sphere.hitPos);
+        normal = gml::normalize(hitinfo.sphere.hitPos);
 }
+
 
 
 static const float EPSILON = 1e-5;
